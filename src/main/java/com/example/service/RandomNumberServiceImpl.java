@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.model.RandomNumber;
+import com.example.repository.RandomNumberCustomRepo;
 import com.example.repository.RandomNumberRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,18 +17,26 @@ import java.util.Optional;
  */
 @Service
 public class RandomNumberServiceImpl implements RandomNumberService {
+    
     /**
-     *This field needed to store URL for the external Numbers service.
+     * This field needed to store URL for the external Numbers service.
      */
     private final String url;
+
     /**
-     *This field is needed to provide access to the database.
+     * This field is needed to provide access to the database.
      */
     private final RandomNumberRepository repository;
 
-    public RandomNumberServiceImpl(@Value("${numbersapi.url}") String url, RandomNumberRepository repository) {
+    /**
+     * This field is needed to provide access to the database.
+     */
+    private final RandomNumberCustomRepo customRepo;
+    
+    public RandomNumberServiceImpl(@Value("${numbersapi.url}") String url, RandomNumberRepository repository, RandomNumberCustomRepo customRepo) {
         this.url = url;
         this.repository = repository;
+        this.customRepo = customRepo;
     }
 
     /**
@@ -67,9 +76,9 @@ public class RandomNumberServiceImpl implements RandomNumberService {
     public Map<String, Object> getMetricsResp() {
         return new HashMap<>() {
             {
-                put("avgLatency", repository.findAvgLatency());
-                put("avgSuccess", repository.findAvgSuccess());
-                put("popularNumbers", repository.findPopularNumbers());
+                put("popularNumbers", customRepo.findPopularNumbers());
+                put("avgLatency", round(customRepo.findAvgLatency()));
+                put("avgSuccess", round(getAvgSuccess()));
             }
         };
     }
@@ -79,5 +88,26 @@ public class RandomNumberServiceImpl implements RandomNumberService {
      */
     private void saveRandomNumber(RandomNumber number) {
         repository.save(number);
+    }
+
+    /**
+     * @return average success rate.
+     */
+    private double getAvgSuccess() {
+        double totalCountRecords = customRepo.findCountRecords();
+        if (totalCountRecords == 0) {
+            return 0;
+        }
+        double foundTrueCountRecords = customRepo.findCountRecordsByFound(true);
+        return foundTrueCountRecords / totalCountRecords * 100;
+    }
+
+    /**
+     * Method rounds the value to 2 decimal places.
+     * @param value a double value
+     * @return a rounded value.
+     */
+    private double round(double value) {
+        return (double) Math.round(value * 100d) / 100d;
     }
 }

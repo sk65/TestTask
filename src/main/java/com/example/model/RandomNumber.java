@@ -1,39 +1,38 @@
 package com.example.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import javax.persistence.*;
-
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 /**
  * Created by  Yefimov Yevhen on 10.11.2020
  * Base POJO class with property ID
  */
-@Entity
-@Table(name = "number")
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Document(indexName = "numbers")
 public class RandomNumber {
     @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(name = "number")
+    @Field(type = FieldType.Long)
     private long number;
 
-    @Column(name = "text")
+    @Field(type = FieldType.Text)
     private String text;
 
-    @Column(name = "found")
+    @Field(type = FieldType.Boolean)
     private boolean found;
 
-    @Column(name = "latency")
+    @Field(type = FieldType.Long)
     private long latency;
+
 
     public RandomNumber() {
     }
 
-    public RandomNumber(long number, String text, boolean found, long latency) {
+    public RandomNumber(String id, long number, String text, boolean found, long latency) {
+        this.id = id;
         this.number = number;
         this.text = text;
         this.found = found;
@@ -41,11 +40,11 @@ public class RandomNumber {
 
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -79,5 +78,16 @@ public class RandomNumber {
 
     public void setLatency(long latency) {
         this.latency = latency;
+    }
+
+    @Override
+    public String toString() {
+        return "RandomNumber{" +
+                "id='" + id + '\'' +
+                ", number=" + number +
+                ", text='" + text + '\'' +
+                ", found=" + found +
+                ", latency=" + latency +
+                '}';
     }
 }
